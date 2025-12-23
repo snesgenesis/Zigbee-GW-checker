@@ -64,7 +64,7 @@ Ping Test to 8.8.8.8 is Unreachable"
 
 # Step 6: Active connections (filtered by eth0.2 IP)
 echo ""
-echo "6. Active Connections (Bound to $PRIMARY_IP):"
+echo "6. Active Established Connections (Bound to $PRIMARY_IP):"
 if [ -n "$PRIMARY_IP" ]; then
   netstat -anp 2>/dev/null | grep "$PRIMARY_IP" | grep "ESTABLISHED" | sed 's/^/   /'
 else
