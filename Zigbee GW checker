@@ -80,7 +80,7 @@ echo " 8. Interface statistics for eth0"
 ip -stats link show eth0
 echo ""
 # Step 9. Resolve external IP
-echo "
+echo ""
 echo " curl https://ipv4.ident.me"
 fi
 #Step 10. DNS Haiku
