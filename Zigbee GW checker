@@ -82,7 +82,8 @@ echo ""
 # Step 9. Resolve external IP
 echo ""
 echo " 10. Display external IP and ISP status"
-curl https://ipv4.ident.me 2>/dev/null
+curl https://ipv4.ident.me 2>/dev/null,
+curl ipinfo.io/org 2>/dev/null
 echo ""
 #Step 10. DNS Haiku
 echo " Three things are certain:" " Death, taxes and lost data." " Guess which has occurred."
