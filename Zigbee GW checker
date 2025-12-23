@@ -80,6 +80,6 @@ echo " 8. Interface statistics for eth0"
 ip -stats link show eth0
 echo ""
 #Step 9. DNS Haiku
-echo " It's not DNS..." " There's no way it's DNS..." " It was DNS"
+echo " Three things are certain:" " Death, taxes and lost data." " Guess which has occurred."
 echo ""
 echo "===== Diagnostics Complete ====="
