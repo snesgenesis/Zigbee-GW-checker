@@ -1,0 +1,85 @@
+#!/bin/sh
+
+echo ""
+echo "===== Centegix Gateway Connectivity Check ====="
+
+# Step 0: Hostname and time
+HOST=$(uname -a)
+[ -z "$HOST" ] && HOST="uname -a"
+echo "Running on $HOST at $(date)"
+
+# Step 1: Interface status
+echo ""
+echo "1. Interface eth0 status:"
+ip link show eth0 2>/dev/null | grep "state UP" >/dev/null
+[ $? -eq 0 ] && echo "   eth0 is UP" || echo "   eth0 is DOWN or not 
+found"
+
+# Step 2: IP address on eth0 (BusyBox-safe with persistent variable)
+echo ""
+echo "2. IP address on eth0:"
+PRIMARY_IP=""
+for IP in $(ip -4 addr show eth0 | awk '/inet / {print $2}'); do
+  CLEAN_IP=$(echo "$IP" | cut -d/ -f1)
+  echo "$CLEAN_IP" | grep "^169\." >/dev/null
+  if [ $? -ne 0 ]; then
+    PRIMARY_IP="$CLEAN_IP"
+    break
+  fi
+done
+
+if [ -n "$PRIMARY_IP" ]; then
+  echo "   IP Address: $PRIMARY_IP"
+else
+  echo "   No valid IP assigned"
+fi
+
+# Step 3: IP assignment type
+echo ""
+echo "3. IP Assignment Type:"
+ps | grep "udhcpc.*eth0" | grep -v grep >/dev/null
+[ $? -eq 0 ] && echo "   eth0 is using DHCP (udhcpc is active)" || echo "   
+eth0 is likely resolving to a static IP"
+
+# Step 4: Default Gateway
+DEFAULT_GW=$(ip route show dev eth0 | grep "default" | awk '{print $3}')
+echo ""
+echo "4. Default Gateway: $DEFAULT_GW"
+ping -c 2 -I eth0 -W 2 $DEFAULT_GW >/dev/null 2>&1
+[ $? -eq 0 ] && echo "   Ping Test to $DEFAULT_GW is Reachable" || echo "   
+Ping Test to $DEFAULT_GW is Unreachable"
+
+# Step 5. Connectivity Test to public DNS via eth0:"
+echo ""
+echo "5. Connectivity Test to public DNS via eth0"
+  ping -c5 -I eth0 -W 4 8.8.8.8 >/dev/null 2>&1
+[ $? -eq 0 ] && echo "   Ping Test to 8.8.8.8 is Reachable" || echo "   
+Ping Test to 8.8.8.8 is Unreachable"
+   
+
+    
+  
+
+
+
+# Step 6: Active connections (filtered by eth0.2 IP)
+echo ""
+echo "6. Active Connections (Bound to $PRIMARY_IP):"
+if [ -n "$PRIMARY_IP" ]; then
+  netstat -anp 2>/dev/null | grep "$PRIMARY_IP" | grep "ESTABLISHED" | sed 's/^/   /'
+else
+  echo "   Skipped — No valid IP found on eth0"
+fi
+# Step 7: Verify ICMP Status
+echo ""
+echo " 7. Verify ICMP Status"
+cat /proc/sys/net/ipv4/icmp_echo_ignore_all
+# Step 8. Interface statistics for eth0"
+echo ""
+echo " 8. Interface statistics for eth0"
+ip -stats link show eth0
+echo ""
+#Step 9. DNS Haiku
+echo " It's not DNS..." " There's no way it's DNS..." " It was DNS"
+echo ""
+echo "===== Diagnostics Complete ====="
