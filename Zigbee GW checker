@@ -83,6 +83,7 @@ echo ""
 echo ""
 echo " 10. Display external IP and ISP company"
 curl ipinfo.io/org 2>/dev/null
+echo ""
 curl https://ipv4.ident.me 2>/dev/null
 echo ""
 #Step 10. DNS Haiku
