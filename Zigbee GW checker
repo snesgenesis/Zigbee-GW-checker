@@ -82,7 +82,7 @@ echo ""
 # Step 9. Resolve external IP
 echo ""
 echo " curl https://ipv4.ident.me"
-fi
+echo ""
 #Step 10. DNS Haiku
 echo " Three things are certain:" " Death, taxes and lost data." " Guess which has occurred."
 echo ""
