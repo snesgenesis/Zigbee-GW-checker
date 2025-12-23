@@ -81,7 +81,7 @@ ip -stats link show eth0
 echo ""
 # Step 9. Resolve external IP
 echo ""
-echo " 10. Display external IP and ISP status"
+echo " 10. Display external IP and ISP company"
 curl https://ipv4.ident.me 2>/dev/null,
 curl ipinfo.io/org 2>/dev/null
 echo ""
