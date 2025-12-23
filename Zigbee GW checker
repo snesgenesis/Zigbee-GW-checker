@@ -39,7 +39,7 @@ echo ""
 echo "3. IP Assignment Type:"
 ps | grep "udhcpc.*eth0" | grep -v grep >/dev/null
 [ $? -eq 0 ] && echo "   eth0 is using DHCP (udhcpc is active)" || echo "   
-eth0 is likely resolving to a static IP"
+eth0 is resolving to a static IP"
 
 # Step 4: Default Gateway
 DEFAULT_GW=$(ip route show dev eth0 | grep "default" | awk '{print $3}')
