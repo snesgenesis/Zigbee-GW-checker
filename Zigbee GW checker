@@ -88,6 +88,9 @@ echo ""
 curl https://ipv4.ident.me 2>/dev/null
 date
 echo ""
+
+
+
 #Step 10. Date
 echo""
 echo date
