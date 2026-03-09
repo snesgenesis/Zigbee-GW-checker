@@ -4,98 +4,122 @@ echo ""
 echo "===== Centegix Gateway Connectivity Check ====="
 
 # Step 0: Hostname and time
-HOST=$(uname -a)
-[ -z "$HOST" ] && HOST="uname -a"
+HOST=$(uname -a 2>/dev/null)
+[ -z "$HOST" ] && HOST="unknown-host"
 echo "Running on $HOST at $(date)"
 
 # Step 1: Interface status
 echo ""
 echo "1. Interface eth0 status:"
-ip link show eth0 2>/dev/null | grep "state UP" >/dev/null
-[ $? -eq 0 ] && echo "   eth0 is UP" || echo "   eth0 is DOWN or not 
-found"
+if ip link show eth0 2>/dev/null | grep "state UP" >/dev/null; then
+    echo "   eth0 is UP"
+else
+    echo "   eth0 is DOWN or not found"
+fi
 
-# Step 2: IP address on eth0 (BusyBox-safe with persistent variable)
+# Step 2: IP address on eth0
 echo ""
 echo "2. IP address on eth0:"
 PRIMARY_IP=""
-for IP in $(ip -4 addr show eth0 | awk '/inet / {print $2}'); do
-  CLEAN_IP=$(echo "$IP" | cut -d/ -f1)
-  echo "$CLEAN_IP" | grep "^169\." >/dev/null
-  if [ $? -ne 0 ]; then
-    PRIMARY_IP="$CLEAN_IP"
-    break
-  fi
+
+for IP in $(ip -4 addr show eth0 2>/dev/null | awk '/inet / {print $2}'); do
+    CLEAN_IP=$(echo "$IP" | cut -d/ -f1)
+
+    echo "$CLEAN_IP" | grep "^169\." >/dev/null
+    if [ $? -ne 0 ]; then
+        PRIMARY_IP="$CLEAN_IP"
+        break
+    fi
 done
 
 if [ -n "$PRIMARY_IP" ]; then
-  echo "   IP Address: $PRIMARY_IP"
+    echo "   IP Address: $PRIMARY_IP"
 else
-  echo "   No valid IP assigned"
+    echo "   No valid IP assigned"
 fi
 
 # Step 3: IP assignment type
 echo ""
 echo "3. IP Assignment Type:"
-ps | grep "udhcpc.*eth0" | grep -v grep >/dev/null
-[ $? -eq 0 ] && echo "   eth0 is using DHCP (udhcpc is active)" || echo "   
-eth0 is resolving to a static IP"
+if ps | grep "udhcpc.*eth0" | grep -v grep >/dev/null; then
+    echo "   eth0 is using DHCP (udhcpc is active)"
+else
+    echo "   eth0 is resolving to a static IP"
+fi
 
 # Step 4: Default Gateway
-DEFAULT_GW=$(ip route show dev eth0 | grep "default" | awk '{print $3}')
 echo ""
+DEFAULT_GW=$(ip route show dev eth0 2>/dev/null | awk '/default/ {print $3; exit}')
 echo "4. Default Gateway: $DEFAULT_GW"
-ping -c 2 -I eth0 -W 2 $DEFAULT_GW >/dev/null 2>&1
-[ $? -eq 0 ] && echo "   Ping Test to $DEFAULT_GW is Reachable" || echo "   
-Ping Test to $DEFAULT_GW is Unreachable"
 
-# Step 5. Connectivity Test to public DNS via eth0:"
+if [ -n "$DEFAULT_GW" ]; then
+    if ping -c 2 -I eth0 -W 2 "$DEFAULT_GW" >/dev/null 2>&1; then
+        echo "   Ping Test to $DEFAULT_GW is Reachable"
+    else
+        echo "   Ping Test to $DEFAULT_GW is Unreachable"
+    fi
+else
+    echo "   No default gateway detected"
+fi
+
+# Step 5: Connectivity Test
 echo ""
 echo "5. Connectivity Test to public DNS via eth0"
-  ping -c5 -I eth0 -W 4 8.8.8.8 >/dev/null 2>&1
-[ $? -eq 0 ] && echo "   Ping Test to 8.8.8.8 is Reachable" || echo "   
-Ping Test to 8.8.8.8 is Unreachable"
-   
 
-    
-  
+if ping -c 5 -I eth0 -W 4 8.8.8.8 >/dev/null 2>&1; then
+    echo "   Ping Test to 8.8.8.8 is Reachable"
+else
+    echo "   Ping Test to 8.8.8.8 is Unreachable"
+fi
 
-
-
-# Step 6: Active connections (filtered by eth0.2 IP)
+# Step 6: Active connections
 echo ""
 echo "6. Active Established Connections (Bound to $PRIMARY_IP):"
+
 if [ -n "$PRIMARY_IP" ]; then
-  netstat -anp 2>/dev/null | grep "$PRIMARY_IP" | grep "ESTABLISHED" | sed 's/^/   /'
+    netstat -an 2>/dev/null | grep "$PRIMARY_IP" | grep ESTABLISHED | sed 's/^/   /'
 else
-  echo "   Skipped — No valid IP found on eth0"
+    echo "   Skipped — No valid IP found on eth0"
 fi
-# Step 7: Verify ICMP Status
+
+# Step 7: ICMP Status
 echo ""
-echo " 7. Verify ICMP Status"
-cat /proc/sys/net/ipv4/icmp_echo_ignore_all
-# Step 8. Interface statistics for eth0"
+echo "7. Verify ICMP Status"
+if [ -f /proc/sys/net/ipv4/icmp_echo_ignore_all ]; then
+    cat /proc/sys/net/ipv4/icmp_echo_ignore_all
+else
+    echo "   ICMP status file not found"
+fi
+
+# Step 8: Interface statistics
 echo ""
-echo " 8. Interface statistics for eth0"
-ip -stats link show eth0
+echo "8. Interface statistics for eth0"
+ip -stats link show eth0 2>/dev/null
+
+# Step 9: External IP
 echo ""
-# Step 9. Resolve external IP
+echo "9. Display external IP and ISP company"
+
+if command -v curl >/dev/null 2>&1; then
+    curl -s ipinfo.io/org
+    echo ""
+    curl -s https://ipv4.ident.me
+    echo ""
+else
+    echo "   curl not installed"
+fi
+
+# Step 10: Date
 echo ""
-echo " 9. Display external IP and ISP company"
-echo
-curl ipinfo.io/org 2>/dev/null
-echo ""
-curl https://ipv4.ident.me 2>/dev/null
+echo "10. Current Date"
 date
 echo ""
 
-
-
-#Step 10. Date
-echo""
-date
-echo""
-#Step 11. DNS Haiku
-echo " Three things are certain:" " Death, taxes and lost data." " Guess which has occurred."
+# Step 11: DNS Haiku
+echo "11. DNS Haiku"
+echo "   Three things are certain:"
+echo "   Death, taxes and lost data."
+echo "   Guess which has occurred."
 echo ""
+
 echo "===== Diagnostics Complete ====="
