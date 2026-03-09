@@ -93,8 +93,7 @@ echo ""
 
 #Step 10. Date
 echo""
-echo date
-date wait $PID 2>/dev/null || true
+date
 echo""
 #Step 11. DNS Haiku
 echo " Three things are certain:" " Death, taxes and lost data." " Guess which has occurred."
